@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+
+  <body class="container-fluid">
+    <div id="app">
+      <h1>Welcome to {{message}}</h1>
+
+      <label>id:</label>
+      <input type="text" v-model="primaryKey" />
+      <label>firstName:</label>
+      <input type="text" v-model="firstName" />
+      <label>lastName:</label>
+      <input type="text" v-model="lastName" />
+      <button @click="update(primaryKey)">Update</button>
+      <button @click="insert()">Add</button>
+      <button @click="searchJudge()">Search</button>
+
+
+      <!-- TODO 2: revise the code below -->
+      <table class="customer" style="width: 100%">
+        <th>id</th>
+        <th>firstName</th>
+        <th>lastName</th>
+        <th>button</th>
+        <tr v-for="result in results">
+          <td>{{result.id}}</td>
+          <td>{{result.firstName}}</td>
+          <td>{{result.lastName}}</td>
+          <td>
+            <button @click="deleteRow(result.id)">delete</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+
+  <script>
+
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          message: "Vue3 DB Demo",
+          primaryKey: "",
+          firstName: "",
+          lastName: "",
+          balance: 0,
+          results: null,
+          // TODO 1: replace the url
+          url: "http://localhost:8080/customer", //spring boot
+        };
+      },
+      methods: {
+        searchJudge: async function () {
+          if (this.primaryKey==""){
+            this.selectAll();
+          }else {
+            this.selectOne(this.primaryKey);
+          }
+
+        },
+
+        selectAll: async function () {
+          const result = await axios.get(this.url);
+          console.log(result.data);
+          this.results = result.data;
+        },
+
+        selectOne: async function (pk) {
+          const url =this.url+"/"+pk;
+          const result = await axios.get(url);
+           console.log(result.data);
+          this.results = result.data;
+        },
+
+        insert: async function () {
+          await axios({
+            method: "post",
+            url: this.url,
+            data: {
+              firstName: this.firstName,
+              lastName: this.lastName,
+            },
+          });
+          this.selectAll();
+        },
+
+        deleteRow: async function (pk) {
+          // TODO 3: Implement the delete function
+          await axios({
+            method: "delete",
+            url: this.url+"/"+pk,
+          }
+          )
+          this.selectAll();
+        },
+
+        update: async function (pk) {
+          // TODO 4: Implement the update function
+          await axios({
+            method: "put",
+            url: this.url+"/"+pk,
+            data: {
+              id:this.primaryKey,
+              firstName: this.firstName,
+              lastName: this.lastName,
+            },
+          }
+          )
+          this.selectAll();
+        },
+      },
+      mounted() {
+        this.selectAll();
+      },
+    }).mount("#app");
+  </script>
+</html>
